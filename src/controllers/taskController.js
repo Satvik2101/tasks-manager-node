@@ -37,6 +37,16 @@ async function addTask(req, res) {
   }
 }
 
+async function addMultipleTasks(req, res) {
+  const tasks = req.body;
+  try {
+    const newTasks = await Task.insertMany(tasks);
+    res.send(newTasks);
+  } catch (e) {
+    res.status(400).send(e);
+  }
+}
+
 async function updateTask(req, res) {
   const _id = req.params.id;
   if (!_id.match(/^[0-9a-fA-F]{24}$/)) {
@@ -79,4 +89,5 @@ module.exports = {
   updateTask,
   deleteTask,
   addTask,
+  addMultipleTasks,
 };
