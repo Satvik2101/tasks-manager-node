@@ -35,6 +35,16 @@ async function addUser(req, res) {
   }
 }
 
+async function loginUser(req, res) {
+  const { email, password } = req.body;
+  try {
+    const user = await User.findByCredentials(email, password);
+    res.send(user);
+  } catch (e) {
+    res.status(400).send(e.message);
+  }
+}
+
 async function updateUser(req, res) {
   const _id = req.params.id;
   if (!_id.match(/^[0-9a-fA-F]{24}$/)) {
@@ -78,4 +88,5 @@ module.exports = {
   addUser,
   updateUser,
   deleteUser,
+  loginUser,
 };
