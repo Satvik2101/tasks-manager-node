@@ -1,8 +1,17 @@
 const mongoose = require("mongoose");
 const validator = require("validator");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 
 const userSchema = new mongoose.Schema({
+  tokens: [
+    {
+      token: {
+        type: String,
+        required: true,
+      },
+    },
+  ],
   name: {
     type: String,
     required: true,
@@ -36,7 +45,7 @@ const userSchema = new mongoose.Schema({
     default: 0,
     validate(value) {
       if (value < 0) {
-        throw new Error("Age must be a postive number");
+        throw new Error("Age must be a positive number");
       }
     },
   },
@@ -51,6 +60,16 @@ userSchema.pre("save", async function (next) {
 
   next();
 });
+
+userSchema.methods.generateAuthToken = async function () {
+  const user = this;
+  const token = jwt.sign({ _id: user._id.toString() }, "thisisateststring");
+  console.log(token);
+  user.tokens = user.tokens.concat({ token });
+
+  await user.save();
+  return token;
+};
 
 userSchema.statics.findByCredentials = async function (email, password) {
   const user = await User.findOne({ email });
