@@ -12,6 +12,7 @@ const auth = async function (req, res, next) {
     if (!user) {
       throw new Error("Could not authenticate");
     }
+    req.token = token;
     req.user = user;
     next();
   } catch (e) {

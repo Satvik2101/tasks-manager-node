@@ -61,10 +61,19 @@ userSchema.pre("save", async function (next) {
   next();
 });
 
+userSchema.methods.toJSON = function () {
+  const user = this;
+  const userObject = user.toObject();
+
+  delete userObject.password;
+  delete userObject.tokens;
+
+  return userObject;
+};
+
 userSchema.methods.generateAuthToken = async function () {
   const user = this;
   const token = jwt.sign({ _id: user._id.toString() }, "thisisateststring");
-  console.log(token);
   user.tokens = user.tokens.concat({ token });
 
   await user.save();

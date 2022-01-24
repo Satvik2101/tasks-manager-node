@@ -1,30 +1,5 @@
 const User = require("../models/user");
 
-async function getUsers(req, res) {
-  try {
-    const users = await User.find({});
-    res.send(users);
-  } catch (e) {
-    res.status(500).send(e);
-  }
-}
-
-async function getSingleUser(req, res) {
-  const _id = req.params.id;
-  if (!_id.match(/^[0-9a-fA-F]{24}$/)) {
-    return res.status(400).send("Invalid ID");
-  }
-
-  try {
-    const user = await User.findById(_id);
-    if (!user) {
-      return res.status(404).send("User not found");
-    }
-    res.send(user);
-  } catch (e) {
-    res.status(500).send(e);
-  }
-}
 async function addUser(req, res) {
   const user = new User(req.body);
   try {
@@ -47,47 +22,61 @@ async function loginUser(req, res) {
 }
 
 async function updateUser(req, res) {
-  const _id = req.params.id;
-  if (!_id.match(/^[0-9a-fA-F]{24}$/)) {
-    return res.status(400).send("Invalid ID");
+  const updates = Object.keys(req.body);
+  const allowedUpdates = ["name", "email", "password", "age"];
+  const isValidOperation = updates.every((update) =>
+    allowedUpdates.includes(update)
+  );
+  if (!isValidOperation) {
+    return res.status(400).send({ error: "Invalid updates!" });
   }
 
   try {
-    const user = await User.findByIdAndUpdate(_id, req.body, {
-      new: true,
-      runValidators: true,
+    updates.forEach((update) => {
+      req.user[update] = req.body[update];
     });
-    if (!user) {
-      return res.status(404).send("User not found");
-    }
-    res.send(user);
+    await req.user.save();
+    res.send(req.user);
   } catch (e) {
-    res.status(500).send(e);
+    res.status(500).send(e.message);
+  }
+}
+async function logoutUser(req, res) {
+  try {
+    req.user.tokens = req.user.tokens.filter((token) => {
+      return token.token !== req.token;
+    });
+    await req.user.save();
+    res.send("Logged out");
+  } catch (error) {
+    res.status(500).send(error);
+  }
+}
+
+async function logoutAllUsers(req, res) {
+  try {
+    req.user.tokens = [];
+    await req.user.save();
+    res.send("Logged out from all sessions");
+  } catch (error) {
+    res.status(500).send(error);
   }
 }
 
 async function deleteUser(req, res) {
-  const _id = req.params.id;
-  if (!_id.match(/^[0-9a-fA-F]{24}$/)) {
-    return res.status(400).send("Invalid ID");
-  }
-
   try {
-    const user = await User.findByIdAndDelete(_id);
-    if (!user) {
-      return res.status(404).send("User not found");
-    }
-    res.send(user);
+    await req.user.remove();
+    res.send(req.user);
   } catch (e) {
-    res.status(500).send(e);
+    res.status(500).send(e.message);
   }
 }
 
 module.exports = {
-  getUsers,
-  getSingleUser,
   addUser,
   updateUser,
   deleteUser,
   loginUser,
+  logoutUser,
+  logoutAllUsers,
 };
