@@ -12,50 +12,50 @@ async function main() {
 }
 main();
 /*
-{
+[{
   "description" : "Make dinner",
   "completed" : true
-}
+},
 
 
 {
   "description" : "Keep the books on the bookshelf",
   "completed" : true
-}
+},
 
 
 {
   "description" : "Clean the car",
   "completed" : false
-}
+},
 
 
 {
   "description" : "Clean the kitchen",
   "completed" : false
-}
+},
 
 
 {
   "description" : "Buy groceries",
   "completed" : false
-}
+},
 
 
 {
   "description" : "Add task through postman",
   "completed" : false
-}
+},
 
 
 {
   "description" : "Add another task through postman",
   "completed" : false
-}
+},
 
 
 {
   "description" : "separate routes task",
   "completed" : false
-}
+}]
 */

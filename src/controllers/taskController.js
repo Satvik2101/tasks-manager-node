@@ -2,10 +2,10 @@ const Task = require("../models/task");
 
 async function getTasks(req, res) {
   try {
-    const tasks = await Task.find({});
-    res.send(tasks);
+    await req.user.populate("tasks");
+    res.send(req.user.tasks);
   } catch (e) {
-    res.status(500).send(e);
+    res.status(500).send(e.toString());
   }
 }
 
@@ -16,7 +16,7 @@ async function getSingleTask(req, res) {
   }
 
   try {
-    const task = await Task.findById(_id);
+    const task = await Task.findOne({ _id, owner: req.user._id });
     if (!task) {
       return res.status(404).send("Task not found");
     }
@@ -27,8 +27,11 @@ async function getSingleTask(req, res) {
 }
 
 async function addTask(req, res) {
-  const task = new Task(req.body);
-
+  // const task = new Task(req.body);
+  const task = new Task({
+    ...req.body,
+    owner: req.user._id,
+  });
   try {
     await task.save();
     res.send(task);
@@ -38,7 +41,11 @@ async function addTask(req, res) {
 }
 
 async function addMultipleTasks(req, res) {
-  const tasks = req.body;
+  const tasksOg = req.body;
+  const tasks = [];
+  tasksOg.forEach((task) => {
+    tasks.push({ ...task, owner: req.user._id });
+  });
   try {
     const newTasks = await Task.insertMany(tasks);
     res.send(newTasks);
@@ -54,10 +61,14 @@ async function updateTask(req, res) {
   }
 
   try {
-    const task = await Task.findByIdAndUpdate(_id, req.body, {
-      new: true,
-      runValidators: true,
-    });
+    const task = await Task.findOneAndUpdate(
+      { _id, owner: req.user._id },
+      req.body,
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
     if (!task) {
       return res.status(404).send("Task not found");
     }
@@ -74,7 +85,7 @@ async function deleteTask(req, res) {
   }
 
   try {
-    const task = await Task.findByIdAndDelete(_id);
+    const task = await Task.findByIdAndDelete({ _id, owner: req.user._id });
     if (!task) {
       return res.status(404).send("Task not found");
     }
