@@ -1,4 +1,5 @@
 const User = require("../models/user");
+const sharp = require("sharp");
 
 async function getUserImage(req, res) {
   try {
@@ -14,8 +15,16 @@ async function getUserImage(req, res) {
 }
 
 async function uploadImage(req, res) {
+  const rect = new Buffer.from(
+    '<svg><rect x="0" y="0" width="300" height="300" rx="50" ry="50"/></svg>'
+  );
   try {
-    req.user.avatar = req.file.buffer;
+    const buffer = await sharp(req.file.buffer)
+      .resize({ width: 300, height: 300 })
+      .composite([{ input: rect, blend: "dest-in" }])
+      .png()
+      .toBuffer();
+    req.user.avatar = buffer;
     await req.user.save();
     res.send();
   } catch (e) {
